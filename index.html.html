@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heat Treatment Information</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; max-width: 800px; margin: 0 auto; }
+        h1 { color: #333; }
+        select { margin-bottom: 20px; padding: 5px; }
+        #info { border: 1px solid #ddd; padding: 20px; border-radius: 5px; margin-top: 20px; }
+        img { max-width: 100%; height: auto; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Heat Treatment Information</h1>
+    <select id="steelType">
+        <option value="">Select a steel type</option>
+    </select>
+    <div id="info"></div>
+
+    <script>
+        // Replace with your actual Sheety API URL
+        const API_URL = 'https://api.sheety.co/5d32d49094539cb57bb406960e654c69/heatTreatBible/alphaknifesupplyCsv';
+        const steelSelect = document.getElementById('steelType');
+        const infoDiv = document.getElementById('info');
+
+        // Fetch steel types and populate the dropdown
+        fetch(API_URL)
+            .then(response => response.json())
+            .then(data => {
+                const steelTypes = data.alphaknifesupplyCsv; // Adjust this if your sheet name is different
+                steelTypes.forEach(steel => {
+                    const option = document.createElement('option');
+                    option.value = steel.steelType;
+                    option.textContent = steel.steelType;
+                    steelSelect.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error fetching steel types:', error));
+
+        // Display heat treatment info when a steel type is selected
+        steelSelect.addEventListener('change', (event) => {
+            const selectedSteel = event.target.value;
+            if (selectedSteel) {
+                fetch(`${API_URL}?filter[steelType]=${selectedSteel}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const steelInfo = data.alphaknifesupplyCsv[0]; // Adjust this if your sheet name is different
+                        infoDiv.innerHTML = `
+                            <h2>${steelInfo.steelType}</h2>
+                            <p><strong>Heat Treatment Information:</strong> ${steelInfo.heatTreatmentInformation}</p>
+                            <p>${steelInfo.lb2}</p>
+                            <p><strong>${steelInfo.lb3}</strong> ${steelInfo.lb4} ${steelInfo.lb5}</p>
+                            <p><strong>${steelInfo.lb7}</strong> ${steelInfo.lb6}</p>
+                            <p><strong>${steelInfo.lb9}</strong> ${steelInfo.lb8}</p>
+                            <p>${steelInfo.lb10}</p>
+                            ${steelInfo.imageUrl ? `<img src="${steelInfo.imageUrl}" alt="Graph for ${steelInfo.steelType}">` : ''}
+                        `;
+                    })
+                    .catch(error => console.error('Error fetching steel info:', error));
+            } else {
+                infoDiv.innerHTML = '';
+            }
+        });
+    </script>
+</body>
+</html>
